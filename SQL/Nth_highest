@@ -1,0 +1,6 @@
+SELECT Salary as SecondHighestSalary
+FROM Employee e1
+# # WHERE N-1 = (SELECT COUNT(DISTINCT salary) FROM Employee e2
+# # N = Nth this is 2 for this ass
+WHERE 1 = (SELECT COUNT(DISTINCT salary) FROM Employee e2
+WHERE e2.salary > e1.salary);
