@@ -89,4 +89,84 @@ output = cv2.inpaint(img, mask,3, cv2.INPAINT_TELEA)
 
 cv2.imwrite("2.png",output)
 
+import cv2
+import numpy as np
+from PIL import Image, ImageEnhance
+from numpy.lib.type_check import imag
+from matplotlib import pyplot as plt
 
+def seal_1():
+    img = cv2.imread("veidz.jpg")
+
+    alpha = 2.0
+    beta = -160
+
+    new = alpha * img + beta
+    new = np.clip(new, 0, 255).astype(np.uint8)
+
+    cv2.imwrite("cleaned.png", new)
+
+def seal_2():
+    image = cv2.imread('1.png')
+    image = Image.fromarray(image)
+    image_contrast = ImageEnhance.Contrast(image).enhance(1.5)
+
+    img_hsv = cv2.cvtColor(np.array(image_contrast)[:, :, ::-1],
+                            cv2.COLOR_BGR2HSV)
+
+    red_lower = np.array([110, 50, 50], np.uint8)
+    red_upper = np.array([200, 255, 255], np.uint8)
+    red_mask = cv2.inRange(img_hsv, red_lower, red_upper)
+
+    kernal = np.ones((5, 5), "uint8")
+    red_mask = cv2.dilate(red_mask, kernal)
+    img = np.array(image)
+    dst = cv2.inpaint(img, red_mask, 0 , cv2.INPAINT_TELEA)
+    # cv2.imshow("xx.png",dst)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    plt.subplot(121),plt.imshow(cv2.cvtColor(dst, cv2.COLOR_BGR2RGB))
+    # plt.subplot(122),plt.imshow(cv2.cvtColor(cv2.bitwise_not(threshInv), cv2.COLOR_BGR2RGB))
+    plt.show()
+
+def seal_3():
+
+    img = cv2.imread('messi_2.jpg')
+    mask = cv2.imread('mask2.png',0)
+    dst = cv2.inpaint(img,mask,3,cv2.INPAINT_TELEA)
+    cv2.imshow('dst',dst)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def seal_4():
+
+    inp_img = cv2.imread('1.png',cv2.IMREAD_GRAYSCALE)
+    th,inp_img_thresh = cv2.threshold(255-inp_img,220,255,cv2.THRESH_BINARY)
+    dilate = cv2.dilate(inp_img_thresh,np.ones((5,5),np.uint8))
+    canny = cv2.Canny(dilate,0,255)
+    contours,_ = cv2.findContours(canny,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    test_img = inp_img.copy()
+    for c in contours:
+        (x, y, w, h) = cv2.boundingRect(c)
+        #print(x,y,w,h,test_img[y+h//2,x-w])
+        test_img[y+3:y-2+h,x+3:x+w] = 240 #test_img[y+h//2,x-w]
+
+    cv2.imwrite("stamp_removed.jpg",test_img)
+    cv2.imshow("input image",inp_img)
+    cv2.imshow("threshold",inp_img_thresh)
+    cv2.imshow("output image",test_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+def seal_5():
+    originalImage = cv2.imread('1.png')
+    grayImage = cv2.cvtColor(originalImage, cv2.COLOR_BGR2GRAY)
+    thresh, blackAndWhiteImage = cv2.threshold(grayImage, 127, 255, cv2.THRESH_BINARY)
+    # cv2.imshow('Black white image', blackAndWhiteImage)
+    # cv2.imshow('Original image',originalImage)
+    # cv2.imshow('Gray image', grayImage)
+    plt.subplot(121),plt.imshow(cv2.cvtColor(blackAndWhiteImage, cv2.COLOR_BGR2RGB))
+    plt.subplot(122),plt.imshow(cv2.cvtColor(cv2.bitwise_not(grayImage), cv2.COLOR_BGR2RGB))
+    plt.show()
+    # cv2.imwrite("stamp_removed.jpg",img)
+seal_5()
