@@ -1,3 +1,14 @@
+"""
+    Some codes are from somewhere, I couldn't remember but finding the original version that i got. 
+    These all are for test and understand how they use and why
+"""
+
+
+
+
+
+
+
 import cv2
 from matplotlib import pyplot as plt
 
