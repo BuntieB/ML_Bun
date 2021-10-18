@@ -36,3 +36,46 @@ def drawing_function():
     return()
 
 
+# remove straymarks
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+img = cv2.imread('1.png')
+wimg = img[:, :, 0]
+ret,thresh = cv2.threshold(wimg,100,255,cv2.THRESH_BINARY)
+
+kernel = np.ones((5,5), np.uint8)
+closing = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+kernel = np.ones((13,13), np.uint8)
+erosion = cv2.erode(closing, kernel, iterations = 1)
+mask = cv2.bitwise_or(erosion, thresh)
+white = np.ones(img.shape,np.uint8)*255
+white[:, :, 0] = mask
+white[:, :, 1] = mask
+white[:, :, 2] = mask
+result = cv2.bitwise_or(img, white) # <class 'numpy.ndarray'>
+mask = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+mask = cv2.bitwise_not(mask)
+output = cv2.inpaint(img, mask,3, cv2.INPAINT_TELEA)
+
+# plt.subplot(121),plt.imshow(cv2.cvtColor(mask, cv2.COLOR_BGR2RGB))
+# plt.subplot(122),plt.imshow(output)
+# plt.show()
+# img_filtered = cv2.filter2D(result, cv2.CV_8U, gb_kernel.transpose())
+
+# print(type(result))
+# dst = cv2.inpaint(img, result, 3, cv2.INPAINT_TELEA)
+
+# hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
+# lower_blue = np.array([100,50,50]) 
+# upper_blue = np.array([150,255,255]) 
+# kernel = np.ones((5,5),np.uint8)
+# mask = cv2.inRange(hsv, lower_blue, upper_blue)
+# mask = cv2.dilate(mask,kernel,iterations = 4)
+# dst = cv2.inpaint(img, mask, 3, cv2.INPAINT_TELEA)
+
+
+cv2.imwrite("2.png",output)
+
+
