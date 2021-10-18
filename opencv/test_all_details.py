@@ -1,5 +1,6 @@
 """
     Some codes are from somewhere, I couldn't remember but finding the original version that i got. 
+    And Some are mine.
     These all are for test and understand how they use and why
 """
 
@@ -170,3 +171,151 @@ def seal_5():
     plt.show()
     # cv2.imwrite("stamp_removed.jpg",img)
 seal_5()
+
+
+import re
+import numpy as np
+import cv2 
+from matplotlib import pyplot as plt
+import pytesseract
+from pytesseract import Output
+pytesseract.pytesseract.tesseract_cmd = r"C:\Users\PeerasakChatsermsak\AppData\Local\Tesseract-OCR\tesseract.exe"
+
+"""
+OpenCV provides four variations of this technique.
+
+- cv2.fastNlMeansDenoising() - works with a single grayscale images
+- cv2.fastNlMeansDenoisingColored() - works with a color image.
+- cv2.fastNlMeansDenoisingMulti() - works with image sequence captured in short period of time (grayscale images)
+- cv2.fastNlMeansDenoisingColoredMulti() - same as above, but for color images.
+"""
+
+def noise_1():
+    # cv.fastNlMeansDenoisingColored()
+    """ 
+    As mentioned above it is used to remove noise from color images. (Noise is expected to be gaussian).
+    """
+    img = cv2.imread('1.png')
+    dst = cv2.fastNlMeansDenoisingColored(img,None,10,10,7,21)
+    print("IMG Type ", type(img), " DST type ", type(dst))
+    plt.subplot(121),plt.imshow(img)
+    plt.subplot(122),plt.imshow(dst)
+    plt.show()
+
+def noise_2():
+    # load the image and display it
+    image = cv2.imread("1.png")
+    # cv2.imshow("Image", image)
+    # convert the image to grayscale and blur it slightly
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+    # apply Otsu's automatic thresholding
+    (T, threshInv) = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+    # cv2.imshow("Otsu Thresholding", threshInv)
+    # cv2.waitKey(0)
+    # instead of manually specifying the threshold value, we can use
+    # adaptive thresholding to examine neighborhoods of pixels and
+    # adaptively threshold each neighborhood
+    thresh_mean = cv2.adaptiveThreshold(blurred, 255,
+        cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 21, 10)
+    # cv2.imshow("Mean Adaptive Thresholding", thresh)
+    # cv2.waitKey(0)
+
+    # perform adaptive thresholding again, this time using a Gaussian
+    # weighting versus a simple mean to compute our local threshold
+    # value
+    thresh = cv2.adaptiveThreshold(blurred, 255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 21, 4)
+    # cv2.imshow("Gaussian Adaptive Thresholding", thresh)
+    # cv2.waitKey(0)
+    # print(type(threshInv))
+
+    # kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(7,7))
+    # x = cv2.erode(threshInv, kernel, iterations = 1)
+    
+    plt.subplot(121),plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.subplot(122),plt.imshow(cv2.cvtColor(cv2.bitwise_not(threshInv), cv2.COLOR_BGR2RGB))
+    plt.show()
+
+# noise_2()
+# def unsharp_mask(img, blur_size = (9,9), imgWeight = 1.5, gaussianWeight = -0.5):
+#     gaussian = cv2.GaussianBlur(img, (5,5), 0)
+#     return cv2.addWeighted(img, imgWeight, gaussian, gaussianWeight, 0)
+
+# img_file = '1.png'
+# img = cv2.imread(img_file, cv2.IMREAD_COLOR)
+# img = cv2.blur(img, (5, 5))
+# img = unsharp_mask(img)
+# img = unsharp_mask(img)
+# img = unsharp_mask(img)
+
+# hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+# h, s, v = cv2.split(hsv)
+
+# thresh = cv2.adaptiveThreshold(s, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+# contours, heirarchy = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+# cnts = sorted(contours, key = cv2.contourArea, reverse = True)
+# #for cnt in cnts:
+# canvas_for_contours = thresh.copy()
+# cv2.drawContours(thresh, cnts[:-1], 0, (0,255,0), 3)
+# cv2.drawContours(canvas_for_contours, contours, 0, (0,255,0), 3)
+# # cv2.imshow('Result', canvas_for_contours - thresh)
+# cv2.imwrite("result.jpg", canvas_for_contours - thresh)
+# # cv2.waitKey(0)
+
+# plt.subplot(121),plt.imshow(canvas_for_contours - thresh)
+# plt.subplot(122),plt.imshow(cv2.imread("result.jpg"))
+# plt.show()
+def noise_3():
+    img = cv2.imread('1.png', 0) 
+    ret, bw = cv2.threshold(img, 128,255,cv2.THRESH_BINARY_INV) #use to be binary before remove noise
+    connectivity = 1
+    nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(bw, connectivity, cv2.CV_32S)
+    sizes = stats[1:, -1]; nb_components = nb_components - 1
+    min_size = 3 # threshhold value for small noisy components
+    img2 = np.zeros((output.shape), np.uint8)
+    for i in range(0, nb_components):
+        # print("2")
+        if sizes[i] >= min_size:        
+            img2[output == i + 1] = 255
+
+    res = cv2.bitwise_not(img2)
+
+    plt.subplot(121),plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.subplot(122),plt.imshow(cv2.cvtColor(res, cv2.COLOR_BGR2RGB))
+    plt.show()
+ 
+
+def noise_4():
+    image = cv2.imread("1.png")
+    # cv2.imshow("Image", image)
+    # convert the image to grayscale and blur it slightly
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+    # apply Otsu's automatic thresholding
+    (T, threshInv) = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+    opening = cv2.morphologyEx(threshInv, cv2.MORPH_OPEN, kernel)
+    opening = cv2.GaussianBlur(opening, (5, 5), 0)
+    connectivity = 4
+    nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(opening, connectivity, cv2.CV_32S)
+    sizes = stats[1:, -1]; nb_components = nb_components - 1
+    min_size = 1 # threshhold value for small noisy components
+    img2 = np.zeros((output.shape), np.uint8)
+    for i in range(0, nb_components):
+        # print("2")
+        if sizes[i] >= min_size:        
+            img2[output == i + 1] = 255
+    res = cv2.bitwise_not(img2)
+
+    custom_config = r"-l tha -c tessedit_char_blacklist=~|!-<>@#%&_ --oem 3 --psm 6"
+    text = pytesseract.image_to_string(res , config=custom_config) 
+    text = re.sub(" ","", text)
+    print(text)
+    
+
+    plt.subplot(121),plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.subplot(122),plt.imshow(cv2.cvtColor(res, cv2.COLOR_BGR2RGB))
+    plt.show()
+
+# noise_4()
